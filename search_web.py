@@ -1,5 +1,3 @@
-__author__ = 'youhanwang, MengWang'
-
 import urllib2
 import base64
 import json
@@ -7,44 +5,55 @@ import cPickle
 
 
 def search_web(account_key, host, query_list):
-    """Call Bing search API
-    return: (number of results, final_url)
-    """
+    ''' Call Bing search API
+        @return: (number of results, top-4 urls)
+    '''
+    # Format API url
     bing_api_root = 'https://api.datamarket.azure.com/Bing/SearchWeb/v1'
     bing_url_prefix = bing_api_root + '/Composite?Query='
     pre_handled_query = '+'.join(query_list)
-
     handled_query = '%27' + 'site%3a' + host + '%20' + pre_handled_query + '%27'
-    top = '$top=1'
+    top = '$top=4'
     encode_format = '$format=json'
     final_url = bing_url_prefix + handled_query + '&' + top + '&' + encode_format
 
+    # Call API
     account_key_enc = base64.b64encode(account_key + ':' + account_key)
     headers = {'Authorization': 'Basic ' + account_key_enc}
     request = urllib2.Request(final_url, headers=headers)
     response = urllib2.urlopen(request)
     content = response.read()
     json_content = json.loads(content)
-    result_number = json_content['d']['results'][0]['WebTotal']
 
-    return result_number, final_url
+    # Parse json result
+    web_result = json_content['d']['results'][0]
+    result_number = long(web_result['WebTotal'])
+    results = web_result['Web']
+    top_pages_url = [x['Url'] for x in results[:4]]
+
+    return result_number, top_pages_url
 
 
-class Bing:
-    ''' search_web with cache
+class Bing(object):
+    ''' Wrapper calss for Bing search API, with cache
     '''
     def __init__(self):
+        ''' Initialize cache by loading pkl file
+        '''
         self._search_cache = {}
+        self.search_cache_pkl = 'search_cache.pkl'
+
         try:
-            fin = open('search_cache.pkl', 'rb')
-            tmp = cPickle.load(fin)
-            fin.close()
-            self._search_cache = tmp
+            with open(self.search_cache_pkl, 'rb') as fin:
+                self._search_cache = cPickle.load(fin)
         except Exception as e:
             pass
             # print e
 
     def search_web_cached(self, account_key, host, query_list):
+        ''' Call Bing search API
+            Make real API call only in cache miss
+        '''
         cache_key = (host, tuple(query_list))
 
         if cache_key in self._search_cache:
@@ -56,23 +65,27 @@ class Bing:
         return result
 
     def close(self):
+        ''' Save cache to pkl file
+            This method must be invoked before disposing object
+            Otherwise the cache data would lost
+        '''
         try:
-            fout = open('search_cache.pkl', 'wb')
-            cPickle.dump(self._search_cache, fout)
-            fout.close()
+            with open(self.search_cache_pkl, 'wb') as fout:
+                cPickle.dump(self._search_cache, fout)
         except Exception as e:
             pass
             # print e
 
 
 if __name__ == '__main__':
-    bing = Bing()
-    print bing.search_web_cached(
+
+    print search_web(
         '/Hg13bNu9hmSAQfQXlpIdsEDEq+h2Zt03GHnlZ2EFKk',
         'health.com',
         ['fitness']
     )
 
+    bing = Bing()
     print bing.search_web_cached(
         '/Hg13bNu9hmSAQfQXlpIdsEDEq+h2Zt03GHnlZ2EFKk',
         'health.com',
