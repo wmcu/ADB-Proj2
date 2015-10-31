@@ -1,4 +1,3 @@
-from rules import probes_map
 from search_web import Bing
 
 
@@ -48,7 +47,7 @@ class WebClassifier(object):
         sum_e_coverage = 0
         for sub_category_node in category.children:
             sub_category = sub_category_node.name
-            probes = probes_map[sub_category]
+            probes = sub_category_node.queries
             e_coverage = 0
             for probe in probes:
                 freq, top_urls = self.search_web(probe)

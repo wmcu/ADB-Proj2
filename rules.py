@@ -3,20 +3,22 @@
     This script load probes (on import) and build a category tree
 '''
 
-# global variables:
-
-# probes for each category.
-probes_map = {}
-
-# category tree.
+# global variable:
+# category tree
 category_root = None
 
 
 class CategoryNode(object):
     ''' The tree node class, used to build category tree
+        Fields:
+        name - name of the category, such as "Root"
+        queries - list of queries for the category; query is list of keywords
+        children - list of sub category nodes
+        url_set - document sample urls of the category
     '''
-    def __init__(self, name, children):
+    def __init__(self, name, queries, children):
         self.name = name
+        self.queries = queries
         self.children = children
         self.url_set = None
 
@@ -25,30 +27,15 @@ def on_import():
     ''' initialize two global variables on import
         @reutrn: None
     '''
-    global category_root, probes_map
+    global category_root
 
-    if len(probes_map) > 0:  # don't load again if probes_map is loaded
+    if category_root:  # don't load again if category_root is initialized
         return
 
     print 'load assets...',
 
-    # initialize category tree
-    category_root = CategoryNode('Root', [
-        CategoryNode('Computers', [
-            CategoryNode('Hardware', []),
-            CategoryNode('Programming', [])
-        ]),
-        CategoryNode('Health', [
-            CategoryNode('Diseases', []),
-            CategoryNode('Fitness', [])
-        ]),
-        CategoryNode('Sports', [
-            CategoryNode('Soccer', []),
-            CategoryNode('Basketball', []),
-        ])
-    ])
-
     # load assets
+    probes_map = {}
     fnames = ['root.txt', 'computers.txt', 'health.txt', 'sports.txt']
     for fname in fnames:
         path = 'asset/' + fname
@@ -62,6 +49,22 @@ def on_import():
                     probes_map[category] = [probe]
                 else:
                     probes_map[category].append(probe)
+
+    # initialize category tree
+    category_root = CategoryNode('Root', [], [
+        CategoryNode('Computers', probes_map['Computers'], [
+            CategoryNode('Hardware', probes_map['Hardware'], []),
+            CategoryNode('Programming', probes_map['Programming'], [])
+        ]),
+        CategoryNode('Health', probes_map['Health'], [
+            CategoryNode('Diseases', probes_map['Diseases'], []),
+            CategoryNode('Fitness', probes_map['Fitness'], [])
+        ]),
+        CategoryNode('Sports', probes_map['Sports'], [
+            CategoryNode('Soccer', probes_map['Soccer'], []),
+            CategoryNode('Basketball', probes_map['Basketball'], []),
+        ])
+    ])
 
     print 'done.'
 
