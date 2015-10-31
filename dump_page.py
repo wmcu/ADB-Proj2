@@ -1,4 +1,5 @@
 from subprocess import Popen, PIPE
+from collections import defaultdict
 
 
 def lynx_dump_generator(url):
@@ -62,15 +63,55 @@ def html_word_set(url):
     return word_set
 
 
+# global variable
+# cache: (url, word_set) pairs
 _cache_ = {}
 
+
 def html_word_set_cached(url):
+    ''' Get word set from url with cache
+        Call html_word_set in cache miss
+        @return: a set of word
+    '''
+    global _cache_
+
     if url in _cache_:
         return _cache_[url]
 
     result = html_word_set(url)
     _cache_[url] = result
     return result
+
+
+def build_content_summary(host, category_node):
+    ''' Generate content summary of @host from doc urls in @category_node
+        Side effect: write content summary txt files to `cwd`
+        @return: None
+    '''
+    if not category_node.url_set:
+        return
+
+    # recusively build content summary for sub category
+    for sub_category_node in category_node.children:
+        build_content_summary(host, sub_category_node)
+
+    # count document frequency
+    word_map = defaultdict(int)
+    for url in category_node.url_set:
+        # update document frequency
+        tmp_set = html_word_set_cached(url)
+        for word in tmp_set:
+            word_map[word] += 1
+
+    # sort (word, df) pairs
+    word_freq_pairs = [(word, word_map[word]) for word in word_map]
+    word_freq_pairs.sort()
+
+    # write to file
+    file_name = '%s-%s.txt' % (category_node.name, host)
+    with open(file_name, 'w') as fout:
+        for pair in word_freq_pairs:
+            print >>fout, '%s#%s' % pair
 
 
 if __name__ == '__main__':

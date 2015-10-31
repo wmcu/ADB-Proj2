@@ -50,9 +50,11 @@ class Bing(object):
             pass
             # print e
 
+
     def search_web_cached(self, account_key, host, query_list):
         ''' Call Bing search API
             Make real API call only in cache miss
+            @return: (number of results, top-4 urls)
         '''
         cache_key = (host, tuple(query_list))
 
@@ -63,6 +65,7 @@ class Bing(object):
         self._search_cache[cache_key] = result
 
         return result
+
 
     def close(self):
         ''' Save cache to pkl file

@@ -18,17 +18,19 @@ class CategoryNode(object):
     def __init__(self, name, children):
         self.name = name
         self.children = children
+        self.url_set = None
 
 
 def on_import():
     ''' initialize two global variables on import
+        @reutrn: None
     '''
     global category_root, probes_map
 
     if len(probes_map) > 0:  # don't load again if probes_map is loaded
         return
 
-    print 'on_import'
+    print 'load assets...',
 
     # initialize category tree
     category_root = CategoryNode('Root', [
@@ -60,6 +62,8 @@ def on_import():
                     probes_map[category] = [probe]
                 else:
                     probes_map[category].append(probe)
+
+    print 'done.'
 
 
 on_import()

@@ -1,18 +1,28 @@
 import sys, traceback
 from web_classifier import WebClassifier
 from rules import category_root
+from dump_page import build_content_summary
 
 
 def main(account_key, t_es, t_ec, host):
     ''' Main function for running the whole program
+        @return: None
     '''
+    # part 1: web database classification
     classifier = WebClassifier(account_key, t_es, t_ec, host)
     try:
-        classifier.classify(category_root, 1.0)
+        print '\nClassifying...\n'
+        result, _ = classifier.classify(category_root, 1.0)
+        print '\nClassification:\n'
+        print '/'.join(result)
     except Exception as e:
-        print e
-        # traceback.print_exc(file=sys.stdout)
+        traceback.print_exc(file=sys.stdout)
     classifier.close()
+
+    # part2: web database content summary
+    print '\nBuilding content summary...',
+    build_content_summary(host, category_root)
+    print 'done.\n'
 
 
 if __name__ == '__main__':
