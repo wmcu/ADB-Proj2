@@ -39,7 +39,7 @@ by: Meng Wang (mw2972), Youhan Wang (yw2663)
 
     As descibed in section 4, the doc sample url set of each category is already collected in classification. Now `build_content_summary' method is invoked to generate content summary files. It takes two arguments: the host, and the CategoryNode tree. It traverse the tree to generate content summary for each category, according to their doc sample urls. Since I use `set' data structure to keep all urls, duplications are removed automatically.
     For each url, `html_word_set' function is invoked: lynx command is invoked to retrieve plain text webpages contents. Then the text are cleaned as described in course website, words splitted and kept in a set. Since one url may be dumped more than once, a `html_word_set_cached' is introduced, which is a wrapper of `html_word_set' with a cache.
-    For each category, after all its doc sample word set are dumped, the document frequency of each word is computed. Then all (word, document frequency) pairs are sorted by word and written to file.
+    For each category, after all its doc sample word set are dumped, the document frequency of each word is computed. Then all (word, document frequency) pairs are sorted by word and written to file. We don't count in any multiple word in the content summary.
 
 6. BING ACCOUNT KEY
 

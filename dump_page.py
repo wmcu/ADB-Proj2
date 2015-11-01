@@ -15,13 +15,11 @@ def lynx_dump_generator(url):
         print '[%s]' % lynxcmd,
         print e
 
-    for lin in htmlfile:
-        line = lin.strip()
-        if line == 'References':
+    for line in htmlfile:
+        if line == 'References\n':
             break
         for ch in line:
             yield ch
-        yield ' '  # replace '\n' with ' '
 
 
 def html_word_set(url):
