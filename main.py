@@ -22,7 +22,7 @@ def main(account_key, t_es, t_ec, host):
     classifier.close()
 
     # part2: web database content summary
-    print '\nBuilding content summary...',
+    print '\nBuilding content summary...'
     build_content_summary(host, category_root)
     print 'done.\n'
 
