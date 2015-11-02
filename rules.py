@@ -20,7 +20,7 @@ class CategoryNode(object):
         self.name = name
         self.queries = queries
         self.children = children
-        self.url_set = None
+        self.url_set = set()
 
 
 def on_import():

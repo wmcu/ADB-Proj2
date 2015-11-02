@@ -12,9 +12,11 @@ def main(account_key, t_es, t_ec, host):
     classifier = WebClassifier(account_key, t_es, t_ec, host)
     try:
         print '\nClassifying...\n'
-        result, _ = classifier.classify(category_root, 1.0)
+        results = []
+        classifier.classify(category_root, 1.0, [], results)
         print '\nClassification:\n'
-        print '/'.join(result)
+        for result in results:
+            print '/'.join(result)
     except Exception as e:
         traceback.print_exc(file=sys.stdout)
     classifier.close()

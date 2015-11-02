@@ -28,17 +28,17 @@ by: Meng Wang (mw2972), Youhan Wang (yw2663)
 4. Web database classification algorithm
 
     In each run of the program, the host (database, D) and t_es, t_ec are fixed, and are passed to __init__ method of `WebClassifier' class. So we ommit D in the folowing algorithm analysis.
-    This algorithm is implemented in `classify' method of `WebClassifier' class. The method takes two arguments: the CategoryNode object C, and ESpecificity(C). The `classify' method returns a list of category names which the host has been classified to, which looks like `[Root, Sport, Soccer]'; it also returns a set of document set urls for C.
+    This algorithm is implemented in `classify' method of `WebClassifier' class. The method takes a few arguments: the CategoryNode object C, and ESpecificity(C), a path from category Root to C, and a list of all valid paths as classification results. The `path' may looks like `[Root, Sport, Soccer]', and `results', which is also used as return value, is modified within the method.
     First, the input category C is checked: if it has no subcategory, then simply return [C]
     Then, compute ECoverage vector of C, which contains ECoverage of each sub category C_i of C. For C_i, the call Bing search API with every query, and sum up the number of total hits as ECoverage(C_i). Meanwhile, the top-4 urls of each query are added to the sample document url set of C (not C_i).
     Next, compute ESpecificity vector of C, which contains ESpecificity of each sub category C_i of C. By definition, ESpecificity(C_i) = ESpecificity(C) * ECoverage(C_i) / sum(ECoverage vector).
     Now with ESpecificity and ECoverage, check them against t_es, t_ec. For C_i that meets the thresholds, recursively call classify(C_i, ESpecificity(C_i)). Then the result returned by recusive call is concatenated with name of C; the document sample urls are unioned into doc sample urls of C.
-    Finally, the doc sample urls are attached to CategoryNode C, make it ready for generating content summary in part2.
+    Finally, if the host is not pushed down into any sub category (including the case where current category has no sub category at all), current path is appended to the `result'. The doc sample urls are attached to CategoryNode C, make it ready for generating content summary in part2.
 
 5. Content summary generation algorithm
 
     As descibed in section 4, the doc sample url set of each category is already collected in classification. Now `build_content_summary' method is invoked to generate content summary files. It takes two arguments: the host, and the CategoryNode tree. It traverse the tree to generate content summary for each category, according to their doc sample urls. Since I use `set' data structure to keep all urls, duplications are removed automatically.
-    For each url, `html_word_set' function is invoked: lynx command is invoked to retrieve plain text webpages contents. Then the text are cleaned as described in course website, words splitted and kept in a set. Since one url may be dumped more than once, a `html_word_set_cached' is introduced, which is a wrapper of `html_word_set' with a cache.
+    For each url, `html_word_set' function is invoked: lynx command is invoked to retrieve plain text webpages contents. Then the text are cleaned as described in course website, words splitted and kept in a set. Since one url may be dumped more than once, a `html_word_set_cached' is introduced, which is a wrapper of `html_word_set' with a cache. In case that lynx failed to retrieved a url, `html_word_set' behaves like the webpage is empty by returning an empty set.
     For each category, after all its doc sample word set are dumped, the document frequency of each word is computed. Then all (word, document frequency) pairs are sorted by word and written to file. We don't count in any multiple word in the content summary.
 
 6. BING ACCOUNT KEY

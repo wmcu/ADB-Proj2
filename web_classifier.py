@@ -28,19 +28,17 @@ class WebClassifier(object):
         self.bing.close()
 
 
-    def classify(self, category, especificity_category):
+    def classify(self, category, especificity_c, path, results):
         ''' Main function for web database classification
             Also builds sample document urls for each category
             @category: the CategoryNode object, C
-            @especificity_category: ESpecificity(host, C)
-            @return: (list of categorys, document sample url set)
+            @especificity_c: ESpecificity(host, C)
+            @path: list[str], path from root category to current category
+            @results: list[list[str]], all valid classification paths
+            @return: None
         '''
-        result = [category.name]
+        path.append(category.name)
         url_set = set()
-
-        # if leaf node, return early
-        if len(category.children) == 0:
-            return result, url_set
 
         # compute e_coverage vector
         e_coverage_vector = {}
@@ -61,26 +59,30 @@ class WebClassifier(object):
         for sub_category_node in category.children:
             sub_category = sub_category_node.name
             e_coverage = e_coverage_vector[sub_category]
-            e_especificity = especificity_category * e_coverage
-            e_especificity /= sum_e_coverage
+            e_especificity = especificity_c * e_coverage / sum_e_coverage
             e_especificity_vector[sub_category] = e_especificity
 
             print 'Coverage for category "%s" is %s' % (sub_category, e_coverage)
             print 'Specificity for category "%s" is %s' % (sub_category, e_especificity)
 
-        # check threshold
+        # check threshold and recurse
+        push_down = False
         for sub_category_node in category.children:
             sub_category = sub_category_node.name
             e_especificity = e_especificity_vector[sub_category]
             e_coverage = e_coverage_vector[sub_category]
             if e_especificity < self.t_es or e_coverage < self.t_ec:
                 continue
-            sub_result, sub_url_set = self.classify(sub_category_node, e_especificity)
-            result += sub_result
-            url_set |= sub_url_set
+            # Recursively classify into sub_category
+            push_down = True
+            self.classify(sub_category_node, e_especificity, path, results)
+            # Collect document sample urls of sub_category
+            url_set |= sub_category_node.url_set
 
         # Attach document sample url to the category node object
-        # For generating summary content
+        # for generating summary content
         category.url_set = url_set
 
-        return result, url_set
+        if not push_down:
+            results.append(list(path))
+        path.pop()

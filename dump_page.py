@@ -86,7 +86,8 @@ def build_content_summary(host, category_node):
         Side effect: write content summary txt files to `cwd`
         @return: None
     '''
-    if not category_node.url_set:
+    # Don't generate content summary if the category no sample doc
+    if len(category_node.url_set) == 0:
         return
 
     # recusively build content summary for sub category
