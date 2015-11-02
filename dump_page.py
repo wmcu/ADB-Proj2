@@ -8,9 +8,8 @@ def lynx_dump_generator(url):
     '''
     htmlfile = []
     try:
-        # supress stderr
-        lynxcmd = 'lynx --dump "%s" 2> /dev/null' % url
-        htmlfile = Popen(lynxcmd, shell=True, stdout=PIPE).stdout
+        lynxcmd = ['/usr/bin/lynx', '--dump', url]
+        htmlfile = Popen(lynxcmd, bufsize=-1, stdout=PIPE, stderr=PIPE).stdout
     except Exception as e:
         print '[%s]' % lynxcmd,
         print e
